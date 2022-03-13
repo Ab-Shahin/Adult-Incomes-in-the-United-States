@@ -6,9 +6,14 @@ FROM PortfoiloProject.dbo.adult
 
 SELECT  workclass, COUNT(workclass) WorkClass_count
 FROM PortfoiloProject.dbo.adult
-WHERE workclass <> '?'
 GROUP BY workclass
 ORDER BY WorkClass_count DESC
+
+-- replacing '?' values with the overwhelmingly common value 'Private'
+UPDATE 
+    PortfoiloProject.dbo.adult
+SET
+    workclass = REPLACE(workclass, '?','Private')
 
 
 -- Identifying the precentage of "high income" making > 50K versus "low income" making 50k or less
@@ -24,14 +29,18 @@ SELECT native_country,
 	   COUNT(native_country) native_country_count,
 	   COUNT(native_country) * 100.0 / (SELECT COUNT(native_country) FROM PortfoiloProject.dbo.adult) native_country_Percent
 FROM PortfoiloProject.dbo.adult
-WHERE native_country <> '?'
 GROUP BY native_country
 ORDER BY native_country_Percent DESC
 
+-- replacing '?' values with the overwhelmingly common value 'United-States'
+UPDATE 
+    PortfoiloProject.dbo.adult
+SET
+    native_country = REPLACE(native_country, '?','United-States')
+
+
 
 /* Looking deeper into US data */
-
-
 --Identifying Adults' income in relation to gender
 
 WITH CTE_IncomeToSex AS
@@ -55,12 +64,12 @@ WITH CTE_IncomeToSex AS
 			ORDER BY total_count DESC
 
 
--- Creating a Procedure generating results related to sex, education and workclass
-CREATE PROCEDURE US_income_to
+-- Creating a Procedure generating results related to occupation, education and workclass
+CREATE PROCEDURE US_Income_
 (
- @Sex nvarchar(50), 
  @Education nvarchar(50),
- @Workclass nvarchar(50)
+ @Workclass nvarchar(50),
+ @occupation nvarchar(50)
 ) 
 	AS
 		Select *,
@@ -76,14 +85,28 @@ CREATE PROCEDURE US_income_to
 				END AS income_sex
 		 FROM PortfoiloProject.dbo.adult
 		 WHERE native_country = 'united-states'
-		 AND sex = @SEX
 		 AND Education = @Education
 		 AND workclass = @Workclass
+		 AND occupation = @occupation 
 
 
-EXEC US_income_to @education = 'Bachelors', @SEX = 'male', @Workclass= 'Private';
+EXEC US_Income_ @education = 'Bachelors', @occupation = 'Prof-specialty', @Workclass= 'Private';
 
-EXEC US_income_to @education = 'Masters', @SEX = 'male', @Workclass= 'Self-emp-not-inc';
+EXEC US_Income_ @education = 'Masters', @occupation = 'Exec-managerial', @Workclass= 'Self-emp-not-inc';
+
+
+-- Identifying occupations with highest count for high and low income Adults   
+SELECT occupation, Income_label, COUNT (Income_label) num_occupation
+FROM PortfoiloProject.dbo.adult
+
+GROUP BY Income_label,occupation
+ORDER BY Income_label DESC,num_occupation DESC
+
+-- replacing '?' values with the 'Not Available'
+UPDATE 
+    PortfoiloProject.dbo.adult
+SET
+    occupation = REPLACE(occupation, '?','Not Available')
 
 
 -- Occupation in relation to high and low income 
@@ -105,9 +128,3 @@ Select *,
 		 GROUP BY occupation, Income_label, sex
 		 ORDER BY Income_label DESC , num_occupation DESC
 
--- Identifying occupations with highest count for high and low income Adults   
-SELECT occupation, Income_label, COUNT (Income_label) num_occupation
-FROM PortfoiloProject.dbo.adult
-WHERE occupation <> '?'
-GROUP BY Income_label,occupation
-ORDER BY Income_label DESC,num_occupation DESC
