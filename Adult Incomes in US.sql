@@ -1,7 +1,15 @@
+
+-- An analysis of US adults income dataset inluding differnt attributes like age, education, and native country 
+/* 
+dataset link
+https://www.kaggle.com/datasets/danielbethell/adult-incomes-in-the-united-states?select=adult.data
+*/
+
+
 SELECT *
 FROM PortfoiloProject.dbo.adult
 
--- Looking at different Workclasses and the total count of each class
+-- Looking at different Workclasses and the total count of each class by selecting distinct workclasses
 
 
 SELECT  workclass, COUNT(workclass) WorkClass_count
@@ -40,7 +48,7 @@ SET
 
 
 
-/* Looking deeper into US data */
+/* looking into US being the native country */
 --Identifying Adults' income in relation to gender
 
 WITH CTE_IncomeToSex AS
